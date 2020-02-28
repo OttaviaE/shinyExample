@@ -1,0 +1,418 @@
+---
+title: "Shinyland"
+subtitle: "Rules for surving a shiny-astrophe"
+author: "Ottavia M. Epifania"
+runtime: shiny
+output: html_document
+      # ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+```
+
+## Shiny app 
+
+* User interface (UI) - Server - UI
+* UI is the container, the server prepaers the contents 
+* They talk to each other:
+  - Define something in the UI and not using in teh server: nothing happens, it just doesn,t exist
+  - Calling something in ther server that has not been defined in the UI: **RUN** (fast)
+  
+The code for this tutorial is on my GitHub profile [OttaviaE](https://github.com/OttaviaE)
+
+
+## Let's start with an easy example
+
+
+```{r cars, echo = TRUE, message = FALSE}
+shinyApp(
+
+  ui = fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset", # name of the input (for the server)
+                  label = "Choose a dataset:", # name of the input (for the users)
+                  choices = c("rock", "pressure", "cars")) # options (for  both 
+                                                          # users & server)
+    ),
+
+    mainPanel(
+      plotOutput( # define the graphical output (we're telling R that this output 
+        "graph"   # container must contain a plot)
+      ),
+      verbatimTextOutput( # define the graphical output (we're telling R that
+        "summary"   # this output container must contain a Verbatim output)
+      )
+    ) 
+  )
+),
+
+server = function(input, output){
+  output$graph <- renderPlot({
+    if(input$dataset == "rock"){ # call the input and its options with their label
+      data <- rock
+    } else if (input$dataset == "pressure" ){
+      data <- pressure
+    } else if (input$dataset == "cars") {
+      data <- cars
+    }
+    plot(data[, c(1:2)])
+  })
+
+  output$summary <- renderPrint({
+    if(input$dataset == "rock"){
+      data <- rock
+    } else if (input$dataset == "pressure" ){
+      data <- pressure
+    } else if (input$dataset == "cars") {
+      data <- cars
+    }
+    summary(data[, c(1:2)])
+  })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+### Rule 1: Don't repeat yourself
+
+Nice right? However, there's too much code. For both the `output$graph` and the 
+`output$summary`, I wrote the same code. There's a quite easy solution for that. I call it the "shelf solution": 
+
+```{r}
+shinyApp(
+
+  ui = fluidPage( # the UI didn't change at all
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset",
+                  label = "Choose a dataset:",
+                  choices = c("rock", "pressure", "cars"))
+    ),
+
+    mainPanel(
+      plotOutput(
+        "graph"
+      ),
+      verbatimTextOutput(
+        "summary"
+      )
+    ) # display output
+  )
+),
+
+server = function(input, output){ 
+  values <- reactiveValues() # create the shelf with reactive values 
+  dataInput <- reactive({ # create a reactive envrinoment (it reacts to whatever input receives)
+    if(input$dataset == "rock"){ # this part is the same as before
+      data <- rock
+    } else if (input$dataset == "pressure" ){
+      data <- pressure
+    } else if (input$dataset == "cars") {
+      data <- cars
+    }
+  })
+  observe({                      # ta-da, the shelf is in action. To make it works,telling R 
+    values$data <- data.frame(dataInput()) #  it has to be called inside an observe function, 
+  })                                       # we're using a reaCtive object
+
+    output$graph <- renderPlot({
+       plot(values$data[, c(1:2)]) # call the shelf and you're all set
+    })
+
+    output$summary <- renderPrint({
+    summary(values$data)
+    })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+### Rule 2: Take things sloooooooowly
+
+The appearance of the app didn't change at all, but now we don't have to type the selection of the code for every time we need to use the data frame: It's now stored in the shelf and we can call for it everytime we want by using the `$` sign...Just like in R!
+
+Still, there's something I don't like: Everytime we select a different dataframe, the output change immediately. We should put an action button somewhere!
+
+```{r}
+shinyApp(
+
+  ui = fluidPage( # same as before
+   sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset",
+                  label = "Choose a dataset:",
+                  choices = c("rock", "pressure", "cars")),
+      # ACTION BUTTON 
+      actionButton("load", # label for the server
+                   "Upload data") # label for the users
+      ),
+    mainPanel(
+      plotOutput(
+        "graph"
+      ),
+      verbatimTextOutput(
+        "summary"
+      )
+    ) # display output
+  )
+),
+
+server = function(input, output){
+  values <- reactiveValues() 
+  dataInput <- reactive({
+    if(input$dataset == "rock"){
+      data <- rock
+    } else if (input$dataset == "pressure" ){
+      data <- pressure
+    } else if (input$dataset == "cars") {
+      data <- cars
+    }
+  })
+  observe({
+    values$data <- data.frame(dataInput())
+  })
+
+    output$graph <- renderPlot({
+       plot(values$data[, c(1:2)])
+    })
+
+    output$summary <- renderPrint({
+    summary(values$data)
+    })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+### Rule 3: ... but remember to tell the server what you're doing 
+
+Uhm... Now there's an Action Button but there's still something missing: The app reacts immediately and that's not what we want!
+ That's because we didn't change the server accorndigly. Let's do that: 
+ 
+```{r}
+shinyApp(
+
+  ui = fluidPage(
+   sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset",
+                  label = "Choose a dataset:",
+                  choices = c("rock", "pressure", "cars")),
+
+      actionButton("load", "Upload data")
+      ),
+    mainPanel(
+      plotOutput(
+        "graph"
+      ),
+      verbatimTextOutput(
+        "summary"
+      )
+    ) # display output
+  )
+),
+
+server = function(input, output){
+ values <- reactiveValues()
+  dataInput <- reactive({
+    if(input$dataset == "rock"){
+      data <- rock
+    } else if (input$dataset == "pressure" ){
+      data <- pressure
+    } else if (input$dataset == "cars") {
+      data <- cars
+    }
+  })
+  observeEvent(input$load, { # Use the observeEvent function to make the UI and 
+    values$data <- data.frame(dataInput()) # server communicate again
+  })
+
+  output$graph <- renderPlot({
+    plot(values$data[, c(1:2)])
+  })
+
+  output$summary <- renderPrint({
+    summary(values$data)
+  })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+
+### Rule 4: Don't scare the users 
+
+I guess you don't want to open an app with an error message, it's awkward: 
+
+```{r}
+shinyApp(
+
+  ui = fluidPage( # same as before
+   sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset",
+                  label = "Choose a dataset:",
+                  choices = c("rock", "pressure", "cars")),
+
+      actionButton("load", 
+                   "Upload data")
+      ),
+    mainPanel(
+      plotOutput(
+        "graph"
+      ),
+      verbatimTextOutput(
+        "summary"
+      )
+    ) # display output
+  )
+),
+
+server = function(input, output){
+   values <- reactiveValues()
+    dataInput <- reactive({
+      if(input$dataset == "rock"){
+        data <- rock
+      } else if (input$dataset == "pressure" ){
+        data <- pressure
+      } else if (input$dataset == "cars") {
+        data <- cars
+      }
+    })
+    observeEvent(input$load, {
+      values$data <- data.frame(dataInput())
+    })
+
+  output$graph <- renderPlot({
+    validate( # validate function: I need something to be validated for letting 
+      need(input$load > 0, # you see what's hidden behind me
+           "Waiting for data") # If it's not validated, I'll show you this message
+    )
+    plot(values$data[, c(1:2)])
+  })
+
+  output$summary <- renderPrint({
+    validate(
+      need(input$load > 0, "Waiting for data") # Waiting message
+    )
+    summary(values$data)
+  })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+### Rule 5: Let the users use their own datasets
+
+```{r}
+shinyApp(
+
+  ui = fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset",
+                  label = "Choose a dataset:",
+                  choices = list("rock" = 1, # we add numbers to the dataset labels
+                                 "pressure" = 2,
+                                 "cars" = 3,
+                                 "I want to use my data!!" =4)), # we add an option
+      # Let me introduce you Mr. Conditional Panel aka the Savior
+      conditionalPanel(
+        condition = "input.dataset == '4'", # What is the condtion for which I should show up?
+        # What should be displayed inside me once I show up?
+        fileInput("example",  # label for the server
+                  "", # users don't deserve a a label because fuck them
+                  accept = c("text/csv")) # what format do we accept?
+      ),
+      actionButton("load", "Upload data")
+    ),
+
+    mainPanel(
+      plotOutput(
+        "graph"
+      ),
+      verbatimTextOutput(
+        "summary"
+      )
+    ) # display output
+  )
+),
+
+server = function(input, output){
+    values <- reactiveValues()
+  dataInput <- reactive({
+    if(input$dataset == 1){ # now we use the number associate to each dataset 
+      data <- rock
+    } else if (input$dataset == 2 ){
+      data <- pressure
+    } else if (input$dataset == 3) {
+      data <- cars
+    } else if (input$dataset == 4) {
+      data <- read.csv(input$example$datapath) # we call the input for the data import by its label and we ask for the datapath selceted by the user
+    }
+  })
+  observeEvent(input$load, # we load the dataset (whatever it is only once the user has hitten the button)
+               {
+    values$data <- data.frame(dataInput())
+  })
+
+  output$graph <- renderPlot({
+    validate(
+      need(input$load > 0, "Waiting for data")
+    )
+    if (any(colnames(values$data) == "condition") ){ # I had to change the code just for the new dataset, which is differnet from all the others
+      plot(values$data$tr ~ values$data$condition,
+           xlab = "Condition", ylab = "TR")
+    } else {
+      plot(values$data[, c(1:2)])
+    }
+  })
+
+  output$summary <- renderPrint({
+    validate(
+      need(input$load > 0, "Waiting for data")
+    )
+    if (any(colnames(values$data) == "condition") ){
+      summary(values$data[, c(2:3)])
+    } else {
+      summary(values$data[, c(1:2)])
+    }
+  })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+### Rule 6: Code has to be fluid andadapt to everything (like a cat)
+
+We have the code for uploading a dataframe. This is sweet. But (There's alwys a but) the code I provided for teh previpus app is specifically designed to work for that specific data frame, and this doesn't sound right. If only we had a way to explore the data frame columns and choose the ones we would like to plot...
+
+So, first of all, let's define a new ui.
+
+
+## Useful things
+
+Check out: 
+
+- [Shiny Gallery](https://shiny.rstudio.com/gallery/)
+- [Shiny server](https://rstudio.com/products/shiny/shiny-server/)
+- [Shiny server for dummies](https://deanattali.com/2015/05/09/setup-rstudio-shiny-server-digital-ocean/#shiny-git)
+- [shinjs](https://deanattali.com/shinyjs/example) if you want to be a sborone and make a sweet shiny app
+- [CSS for dummies](https://www.w3schools.com/css/)
+- [Example of CSS in shiny](http://fisppa.psy.unipd.it/DscoreApp/) It also has a [DOI!!!](https://joss.theoj.org/papers/10.21105/joss.01764)
+- Ask me: I'd love to build new shiny apps, you can be the mind, I'll be the one swearing in front of a computer

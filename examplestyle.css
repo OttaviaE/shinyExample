@@ -1,0 +1,67 @@
+h1 {
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-weight: 500;
+                                  line-height: 1.1;
+                                  color: #93baff;
+                                      position: relative;
+                                     background : url(logo6.png) no-repeat 0 0;
+                                  }
+                                  h3 {
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-variant: small-caps;
+                                  color: #5e67e5;
+                                  text-align: center;
+                                  }
+                                  h4 {
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-style: italic;
+                                  color: 	#5e67e5;
+                                  font-weight: 400;
+                                  }
+                                  h5 {
+                                  font-family: \"Gerogia\", Times, serif;
+                                  font-style: italic;
+                                  color: #7a6db1;
+                                  font-weight: 450;
+                                  }
+                                  h6 {
+                                  font-family: \"Georgia\", Times, serif;
+                                  color: #7a6db1;
+                                  font-weight: 470;
+                                  }
+                                  em {
+                                  font-weight:italic;
+                                  }
+                                  p.normal {
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-variant: normal;
+                                  font-size: 10pt;
+                                  }
+                                  table, th, td {
+                                  font-family: \"Georgia\", Times, serif;
+                                  border: 1px solid black;
+                                  border-collapse: collapse;
+                                  padding: 8px;
+                                  text-align: center;
+                                  }
+                                  blockquote{
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-size: 12pt;
+                                  }
+                                  .btn {
+                                  background-color:#b491f6;
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-variant: small-caps;
+
+                                  }
+                                  .shiny-notification{
+                                    position: fixed;
+                                    top: 33%;
+                                    left: 53%;
+                                    right: 33%;
+                                    background-color:#c7ccff;
+                                    color: #7a6db1;
+                                  }
+                                 body {
+                                  background-color: #fdfaff;
+                                 }
