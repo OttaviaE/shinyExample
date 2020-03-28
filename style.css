@@ -1,10 +1,22 @@
-h1 {
+ h1 {
                                   font-family: \"Georgia\", Times, serif;
                                   font-weight: 500;
                                   line-height: 1.1;
                                   color: #93baff;
                                       position: relative;
                                      background : url(logo6.png) no-repeat 0 0;
+                                  }
+								   h1 {
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-variant: small-caps;
+                                  color: 	#5154dd;
+                                  text-align: center;
+                                  }
+								  h2 {
+                                  font-family: \"Georgia\", Times, serif;
+                                  font-variant: small-caps;
+                                  color: 	#5154dd;
+                                  text-align: center;
                                   }
                                   h3 {
                                   font-family: \"Georgia\", Times, serif;
@@ -17,6 +29,7 @@ h1 {
                                   font-style: italic;
                                   color: 	#5e67e5;
                                   font-weight: 400;
+								  text-align: center;
                                   }
                                   h5 {
                                   font-family: \"Gerogia\", Times, serif;
@@ -35,7 +48,8 @@ h1 {
                                   p.normal {
                                   font-family: \"Georgia\", Times, serif;
                                   font-variant: normal;
-                                  font-size: 10pt;
+                                  font-size: 12pt;
+								  color: 	#5a90ec;
                                   }
                                   table, th, td {
                                   font-family: \"Georgia\", Times, serif;
@@ -47,6 +61,7 @@ h1 {
                                   blockquote{
                                   font-family: \"Georgia\", Times, serif;
                                   font-size: 12pt;
+								  color: 	#5a90ec;
                                   }
                                   .btn {
                                   background-color:#b491f6;
@@ -63,5 +78,5 @@ h1 {
                                     color: #7a6db1;
                                   }
                                  body {
-                                  background-color: #fdfaff;
+                                  background-color: #e2faff;
                                  }

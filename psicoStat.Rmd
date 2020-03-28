@@ -1,26 +1,31 @@
 ---
 title: "Shinyland"
-subtitle: "Rules for surving a shiny-astrophe"
-author: "Ottavia M. Epifania"
+subtitle: "Basic rules for creating Web applications with Shiny"
+author: "Ottavia Epifania"
 runtime: shiny
-output: html_document
-      # ioslides_presentation: default
+output:  
+      html_document:
+        highlight: kate
+        css: style.css
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(shiny)
+
 ```
 
 ## Shiny app 
 
 * User interface (UI) - Server - UI
-* UI is the container, the server prepaers the contents 
+* UI is the container, the server prepares the contents 
 * They talk to each other:
-  - Define something in the UI and not using in teh server: nothing happens, it just doesn,t exist
+  - Define something in the UI and not using in the server: nothing happens, it just doesn't exist
   - Calling something in ther server that has not been defined in the UI: **RUN** (fast)
   
 The code for this tutorial is on my GitHub profile [OttaviaE](https://github.com/OttaviaE)
+
+
 
 
 ## Let's start with an easy example
@@ -373,7 +378,8 @@ server = function(input, output){
     validate(
       need(input$load > 0, "Waiting for data")
     )
-    if (any(colnames(values$data) == "condition") ){ # I had to change the code just for the new dataset, which is differnet from all the others
+    if (any(colnames(values$data) == "condition") ){ # I had to change the code 
+      #just for the new dataset, which is differnet from all the others
       plot(values$data$tr ~ values$data$condition,
            xlab = "Condition", ylab = "TR")
     } else {
@@ -398,13 +404,119 @@ server = function(input, output){
 )
 ```
 
-### Rule 6: Code has to be fluid andadapt to everything (like a cat)
+### Rule 6: Code has to be fluid and adapt to everything (like a cat)
+```{r, out.width = "200px", fig.align='center', echo = FALSE}
+knitr::include_graphics("liquid-cats1.jpg")
+```
 
-We have the code for uploading a dataframe. This is sweet. But (There's alwys a but) the code I provided for teh previpus app is specifically designed to work for that specific data frame, and this doesn't sound right. If only we had a way to explore the data frame columns and choose the ones we would like to plot...
 
-So, first of all, let's define a new ui.
 
-(Under construction, will be done before March 19)
+We have the code for uploading a dataframe. This is sweet. But (There's alawys a but) the code I provided for the previous app is specifically designed to work for that specific data frame, and this doesn't sound right. If only we had a way to explore the data frame columns and choose the ones we would like to plot...
+
+So, first of all, let's define a new UI in which users can actually select the columns.
+
+```{r}
+shinyApp(
+
+ ui = fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset",
+                  label = "Choose a dataset:",
+                  choices = list("rock" = 1,
+                                 "pressure" = 2,
+                                 "cars" = 3,
+                                 "I want to use my data!!" =4)),
+      
+      conditionalPanel(
+        condition = "input.dataset == '4'",
+        fileInput("example",
+                  "", accept = c("text/csv"))
+      ), 
+      actionButton("load", "Upload data"), # This is th button for uploading 
+                                            # the data
+      conditionalPanel(                    # It appears only when the data are 
+        condition = "input.load >= '1'",   # loaded
+        uiOutput("var1"),                 # contains the name for variable 1
+        uiOutput("var2"),                 # contains the name for variable 2
+        actionButton("select", "Select & Display") # This is the button for 
+      ),                              # selecting the variables and actually see
+                                      # something
+    ),
+    
+    mainPanel(
+      plotOutput(
+        "graph"
+      ),
+      verbatimTextOutput(
+        "summary"
+      )
+    ) # display output
+  )
+),
+
+server = function(input, output){
+  values <- reactiveValues()
+  dataInput <- reactive({
+    if(input$dataset == 1){
+      data <- rock
+    } else if (input$dataset == 2 ){
+      data <- pressure
+    } else if (input$dataset == 3) {
+      data <- cars
+    } else if (input$dataset == 4) {
+      data <- read.csv(input$example$datapath)
+    }
+  })
+  observeEvent(input$load, {
+    values$data <- data.frame(dataInput())
+  })
+  
+  output$var1 <- renderUI({    # remember variable 1? here it is how we extract it
+    nam <- colnames(values$data) # from the data set
+    selectInput("var", label = "Select x:", # create the input
+                choices = c(nam), multiple = F,
+                selected = nam[1])
+  })
+  
+  output$var2 <- renderUI({
+    nam2 <- colnames(values$data) # create the input for variable 2
+    selectInput("var2", label = "Select y:",
+                choices = c(nam2), multiple = F,
+                selected = nam2[1])
+  })
+  
+  newdata <- observeEvent(input$select, # use observe event so that the app will 
+                          { # wait for you to decide before acting
+                            # Besides, you're creating a new (smaller) object
+                            values$df <- values$data[c(input$var, input$var2)]
+                          })
+  output$graph <- renderPlot({
+    validate(
+      need(input$select > 0, "Waiting for data") # I changed the validation from
+    )                                        # load to select
+    df <- values$df # store the new object into an R object
+    plot(df[, c(1:2)]) # use it normally
+
+
+  })
+
+  output$summary <- renderPrint({
+    validate(
+      need(input$select > 0, "Waiting for data")
+    ) 
+    df <- values$df # same 
+    summary(df[, c(1:2)])
+
+  })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+
 
 
 ## Useful things
@@ -418,3 +530,7 @@ Check out:
 - [CSS for dummies](https://www.w3schools.com/css/)
 - [Example of CSS in shiny](http://fisppa.psy.unipd.it/DscoreApp/) It also has a [DOI!!!](https://joss.theoj.org/papers/10.21105/joss.01764)
 - Ask me: I'd love to build new shiny apps, you can be the mind, I'll be the one swearing in front of a computer
+
+
+
+#andràtuttoabagasce
