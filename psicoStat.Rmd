@@ -614,7 +614,7 @@ server = function(input, output){
 
 ### Beyond
 
-```{r}
+```{r echo = FALSE, eval=TRUE}
 library(shinyjs)
 shinyApp(
 
@@ -770,37 +770,19 @@ server = function(input, output){
 )
 ```
 
-
-
-## Useful things
-
-Check out: 
-
-- [Shiny Gallery](https://shiny.rstudio.com/gallery/)
-- [Shiny server](https://rstudio.com/products/shiny/shiny-server/)
-- [Shiny server for dummies](https://deanattali.com/2015/05/09/setup-rstudio-shiny-server-digital-ocean/#shiny-git)
-- [shinjs](https://deanattali.com/shinyjs/example) Add Javascript 
-- [CSS for dummies](https://www.w3schools.com/css/)
-- [Example of CSS in shiny](http://fisppa.psy.unipd.it/DscoreApp/) [DOI](https://joss.theoj.org/papers/10.21105/joss.01764)
-- Ask me
-
-
-
-## GGPLOT
-
-```{r}
-library(ggplot2)
+```{r echo = TRUE, eval=FALSE}
+library(shinyjs)
 shinyApp(
 
  ui = fluidPage(includeCSS("style.css"),
-                useShinyjs(),  # Set up shinyjs
+      useShinyjs(),  # Set up shinyjs
   sidebarLayout(
     sidebarPanel(style = "background-color: 		#e1e9f9;",
-                    a(id = "imp_det", h3("Choose CSV file", style = "font-style: normal; font-size: 14pt;"), href = "#"),
+                    a(id = "imp_det", h3("Choose a dataset", style = "font-style: normal; font-size: 14pt;"), href = "#"),
           shinyjs::hidden(div(
             id = "details_import",
             helpText(
-              h5("Choose a dataset. You can also upload your data!")
+              h5("You can also upload your data!")
             )
           )),
       selectInput(inputId = "dataset",
@@ -865,12 +847,14 @@ server = function(input, output){
       data <- read.csv(input$example$datapath)
     }
   })
- shinyjs::onclick("imp_det",
+  observeEvent(input$load, {
+    values$data <- data.frame(dataInput())
+  })
+   shinyjs::onclick("imp_det",
                    shinyjs::toggle(id = "details_import", anim = TRUE))
   observeEvent(input$load, {
     values$data <- data.frame(dataInput())
   })
-  
   output$var1 <- renderUI({    # remember variable 1? here it is how we extract it
     nam <- colnames(values$data) # from the data set
     selectInput("var1", label = "Select x:", # create the input
@@ -895,10 +879,7 @@ server = function(input, output){
       need(input$select > 0, "Waiting for data") # I changed the validation from
     )                                        # load to select
     df <- values$df # store the new object into an R object
-
-    ggplot(df, aes(x = df[,input$var1], 
-                   y= df[,input$var2])) + geom_point()
-    # plot(df[, c(1:2)]) # use it normally
+    plot(df[, c(1:2)]) # use it normally
 
 
   })
@@ -916,8 +897,8 @@ server = function(input, output){
     df <- values$df # store the dataframe in an object 
     pointID <- nearPoints(df, # the dataframe
                           input$plot_click, # the command for a reaction
-                          xvar = names(df)[colnames(df) == input$var1], # xvar of the graph
-                          yvar = names(df)[colnames(df) == input$var2], # yvar of the graph
+                           xvar = names(df)[colnames(df) == input$var1], # xvar of the graph
+                          yvar = names(df)[colnames(df) == input$var2], # yvar of the graph,
                           addDist = FALSE) 
     validate(
       need(nrow(pointID) != 0, "Click on a point") # Waiting message
@@ -929,7 +910,7 @@ server = function(input, output){
     df <- values$df # store the dataframe in an object 
     brushID <- brushedPoints(df,# the  dataframe 
                              input$plot_brush, # the command for a reaction
-                              xvar = names(df)[colnames(df) == input$var1], # xvar of the graph
+                          xvar = names(df)[colnames(df) == input$var1], # xvar of the graph
                           yvar = names(df)[colnames(df) == input$var2], # yvar of the graph
                              )
     validate(
@@ -943,10 +924,20 @@ server = function(input, output){
 
   options = list(height = 800)
 )
-
-
-
-
-        
 ```
+
+## Useful things
+
+Check out: 
+
+- [Shiny Gallery](https://shiny.rstudio.com/gallery/)
+- [Shiny server](https://rstudio.com/products/shiny/shiny-server/)
+- [Shiny server for dummies](https://deanattali.com/2015/05/09/setup-rstudio-shiny-server-digital-ocean/#shiny-git)
+- [shinjs](https://deanattali.com/shinyjs/example) Add Javascript 
+- [CSS for dummies](https://www.w3schools.com/css/)
+- [Example of CSS in shiny](http://fisppa.psy.unipd.it/DscoreApp/) [DOI](https://joss.theoj.org/papers/10.21105/joss.01764)
+- Ask me: otta.epifania@gmail.com
+
+
+
 
