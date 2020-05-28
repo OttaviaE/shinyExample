@@ -23,7 +23,7 @@ fluidPage(includeCSS("style.css"),
                          conditionalPanel(
                            condition = "input.dataset == '4'",
                            fileInput("example",
-                                     "", accept = c("text/csv"))
+                                     "", accept = c("csv"))
                          ), 
                          actionButton("load", "Upload data"), # This is the button for uploading 
                          # the data

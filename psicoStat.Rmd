@@ -1,6 +1,6 @@
 ---
 title: "Shine bright like an open source app:"
-subtitle: "An introduction to shiny package"
+subtitle: "An introduction to shiny"
 author: "Ottavia Epifania"
 runtime: shiny
 output:  
@@ -413,7 +413,7 @@ server = function(input, output){
 
 ### Rule 5: Let the users use their own datasets
 
-```{r}
+```{r echo = FALSE,eval=TRUE}
 shinyApp(
 
   ui = fluidPage(
@@ -431,7 +431,91 @@ shinyApp(
         # What should be displayed inside me once I show up?
         fileInput("example",  # label for the server
                   "", # no displayed label for users
-                  accept = c("text/csv")) # what format do we accept?
+                  accept = c("csv")) # what format do we accept?
+      ),
+      actionButton("load", "Upload data")
+    ),
+
+    mainPanel(
+      plotOutput(
+        "graph"
+      ),
+      verbatimTextOutput(
+        "summary"
+      )
+    ) # display output
+  )
+),
+
+server = function(input, output){
+    values <- reactiveValues()
+  dataInput <- reactive({
+    if(input$dataset == 1){ # now we use the number associated with each dataset 
+      data <- rock
+    } else if (input$dataset == 2 ){
+      data <- pressure
+    } else if (input$dataset == 3) {
+      data <- cars
+    } else if (input$dataset == 4) {
+      data <- read.csv(input$example$datapath) # we call the input for the data 
+            #import by its label and we ask for the datapath selceted by the user
+    }
+  })
+  observeEvent(input$load, # we load the dataset (whatever it is only once the 
+                                       #  user has hit the button)
+               {
+    values$data <- data.frame(dataInput())
+  })
+
+  output$graph <- renderPlot({
+    validate(
+      need(input$load > 0, "Waiting for data")
+    )
+    if (any(colnames(values$data) == "condition") ){ # I had to change the code 
+      #just for the new dataset, which is differnet from all the others
+      plot(values$data$tr ~ values$data$condition,
+           xlab = "Condition", ylab = "TR")
+    } else {
+      plot(values$data[, c(1:2)])
+    }
+  })
+
+  output$summary <- renderPrint({
+    validate(
+      need(input$load > 0, "Waiting for data")
+    )
+    if (any(colnames(values$data) == "condition") ){
+      summary(values$data[, c(2:3)])
+    } else {
+      summary(values$data[, c(1:2)])
+    }
+  })
+},
+
+
+  options = list(height = 800)
+)
+```
+
+```{r echo = TRUE,eval=FALSE}
+shinyApp(
+
+  ui = fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "dataset",
+                  label = "Choose a dataset:",
+                  choices = list("rock" = 1, # we add numbers to the dataset labels
+                                 "pressure" = 2,
+                                 "cars" = 3,
+                                 "I want to use my data!!" =4)), # we add an option
+      # Let me introduce you Mr. Conditional Panel
+      conditionalPanel(
+        condition = "input.dataset == '4'", # What is the condtion for which I should show up?
+        # What should be displayed inside me once I show up?
+        fileInput("example",  # label for the server
+                  "", # no displayed label for users
+                  accept = c("csv")) # what format do we accept?
       ),
       actionButton("load", "Upload data")
     ),
@@ -498,7 +582,6 @@ server = function(input, output){
 ```
 
 
-
 ### Rule 6: Code has to be fluid and adapt to everything (like a cat)
 ```{r, out.width = "200px", fig.align='center', echo = FALSE}
 knitr::include_graphics("liquid-cats1.jpg")
@@ -525,7 +608,7 @@ shinyApp(
       conditionalPanel(
         condition = "input.dataset == '4'",
         fileInput("example",
-                  "", accept = c("text/csv"))
+                  "", accept = c("csv"))
       ), 
       actionButton("load", "Upload data"), # This is the button for uploading 
                                             # the data
@@ -614,7 +697,7 @@ server = function(input, output){
 
 ### Beyond
 
-```{r echo = FALSE, eval=TRUE}
+```{r echo = FALSE, eval=TRUE, message=FALSE, warning=FALSE}
 library(shinyjs)
 shinyApp(
 
@@ -639,7 +722,7 @@ shinyApp(
       conditionalPanel(
         condition = "input.dataset == '4'",
         fileInput("example",
-                  "", accept = c("text/csv"))
+                  "", accept = c("csv"))
       ), 
       actionButton("load", "Upload data"), # This is the button for uploading 
                                             # the data
@@ -659,7 +742,7 @@ shinyApp(
         brush = brushOpts(id = "plot_brush") # whe we highlight an area we select
       ),     # many rows
       fluidRow( # it displays on the same row multiple arguments
-      column(5, # first column with the summary verbatim output
+      column(4, # first column with the summary verbatim output
              verbatimTextOutput(
         "summary"
       )), 
@@ -795,7 +878,7 @@ shinyApp(
       conditionalPanel(
         condition = "input.dataset == '4'",
         fileInput("example",
-                  "", accept = c("text/csv"))
+                  "", accept = c("csv"))
       ), 
       actionButton("load", "Upload data"), # This is the button for uploading 
                                             # the data
