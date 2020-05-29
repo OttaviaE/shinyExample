@@ -43,7 +43,7 @@ fluidPage(includeCSS("style.css"),
                 brush = brushOpts(id = "plot_brush") # whe we highlight an area we select
               ),     # many rows
               fluidRow( # it displays on the same row multiple arguments
-                column(5, # first column with the summary verbatim output
+                column(4, # first column with the summary verbatim output
                        verbatimTextOutput(
                          "summary"
                        )), 

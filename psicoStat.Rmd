@@ -28,6 +28,7 @@ The code for this tutorial is on my GitHub profile [OttaviaE](https://github.com
 ## An option
 
 ```{r, eval = FALSE}
+library(shiny)
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
